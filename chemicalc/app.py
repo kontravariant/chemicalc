@@ -1,97 +1,89 @@
-from tkinter import *
-import periodictable as pt
+import sys
+from PyQt5.QtWidgets import (QApplication, QWidget,
+                             QPushButton, QLabel, QGroupBox,
+                             QLineEdit, QFormLayout, QComboBox,
+                             QSpinBox, QVBoxLayout, QGridLayout,
+                             QGroupBox)
 
-class App:
+class main_widget(QWidget):
+    def __init__(self):
+        super().__init__()
 
-    def __init__(self, master):
-        frame = Frame(master)
-        frame.grid()
+        self.initUI()
 
-        self.in_label = Label(frame, text="Enter limiting reagent formula or molar mass:", wraplength=1000)
-        self.in_label.grid(row=0,columnspan=2)
+    def initUI(self):
+        self.setGeometry(300, 300, 700, 240)
+        self.setWindowTitle('ChemiCalc')
 
-        self.formula_var = StringVar()
-        self.formula_label = Label(frame, text="Reagent formula:")
-        self.formula_label.grid(row=1,column=0)
-        self.cpd1 = Entry(frame, textvariable=self.formula_var)
-        self.cpd1.grid(row=1,column=1)
+        self.reagent_count, self.product_count = 0, 0
+        self.reagent_list, self.product_list = [], []
 
-        self.molar_var = DoubleVar()
-        self.mol_label = Label(frame, text="Regent molar mass:")
-        self.mol_label.grid(row=2, column=0)
-        self.mol1 = Entry(frame, textvariable=self.molar_var)
-        self.mol1.grid(row=2,column=1)
+        reagentAdder = QPushButton("Add Reagent")
+        reagentAdder.clicked.connect(self.addReagent)
 
-        self.rgt_mass_label = Label(frame, text="Reagent mass:")
-        self.rgt_mass_label.grid(row=3,column=0)
-        self.reagent_mass_var = DoubleVar()
-        self.rgt_mass = Entry(frame, textvariable=self.reagent_mass_var)
-        self.rgt_mass.grid(row=3,column=1)
+        self.reagentGrid = QGridLayout()
+        self.reagentGrid.addWidget(reagentAdder, 0, 0)
 
-        self.in_label = Label(frame, text="Enter product formula or molar mass:", wraplength=1000)
-        self.in_label.grid(row=4, columnspan=2)
+        productAdder = QPushButton("Add Product")
+        productAdder.clicked.connect(self.addProduct)
 
-        self.prd_formula_var = StringVar()
-        self.prd_formula_label = Label(frame, text="Product formula:")
-        self.prd_formula_label.grid(row=5, column=0)
-        self.cpd2 = Entry(frame, textvariable=self.prd_formula_var)
-        self.cpd2.grid(row=5, column=1)
+        self.productGrid = QGridLayout()
+        self.productGrid.addWidget(productAdder, 0, 0)
 
-        self.prd_molar_var = DoubleVar()
-        self.prd_label = Label(frame, text="Product molar mass:")
-        self.prd_label.grid(row=6, column=0)
-        self.prd_mol = Entry(frame, textvariable=self.prd_molar_var)
-        self.prd_mol.grid(row=6, column=1)
+        yieldButton = QPushButton("Calculate Yield")
+        yieldButton.clicked.connect(self.yield_calculator)
 
-        self.prd_mass_var = DoubleVar()
-        self.prd_g_label = Label(frame, text="Product yield:")
-        self.prd_g_label.grid(row=7, column=0)
-        self.prd_mass = Entry(frame, textvariable=self.prd_mass_var)
-        self.prd_mass.grid(row=7, column=1)
+        self.outputGrid = QGridLayout()
+        self.outputGrid.addWidget(yieldButton, 0, 0)
 
-        self.calc_btn = Button(frame, text="Calculate", command=self.calc_yield)
-        self.calc_btn.grid(row=8,column=0, columnspan=2)
+        masterGrid = QGridLayout()
+        masterGrid.addLayout(self.reagentGrid, 0, 0)
+        masterGrid.addLayout(self.productGrid, 0, 1)
+        masterGrid.addLayout(self.outputGrid,  0, 2)
 
-        self.pct_yield_var = StringVar()
-        self.pct_label = Label(frame, text="Percent yield: ")
-        self.pct_yield = Label(frame, textvariable=self.pct_yield_var)
-        self.pct_label.grid(row=9,column=0)
-        self.pct_yield.grid(row=9,column=1)
+        self.setLayout(masterGrid)
 
-        self.quit_btn = Button(frame, text="QUIT", fg="red", command=frame.quit)
-        self.quit_btn.grid(row=10, column=0, columnspan=2)
+        self.show()
 
+    def addReagent(self):
+        self.reagent_count += 1
+        self.reagentGrid.addWidget(self.inputForm("Reagent", self.reagent_count))
 
+    def addProduct(self):
+        self.product_count += 1
+        self.productGrid.addWidget(self.inputForm("Product", self.product_count))
 
-    def calc_yield(self):
-        rgt_formula = self.formula_var.get()
-        prd_formula = self.prd_formula_var.get()
+    def yield_calculator(self):
+        pass
 
-        if len(rgt_formula) > 2:
-            rgt_pt_formula = pt.formula(rgt_formula)
-            reagent_weight = rgt_pt_formula.mass
+    def inputForm(self, type=str, index=int):
+        label = "{0} {1}:".format(type, index)
+        reagentGroup = QGroupBox(label)
+        formula = QLineEdit()
+        weight = QLineEdit()
+        amount = QLineEdit()
+
+        vbox = QFormLayout()
+        vbox.addRow(QLabel("Formula:"), formula)
+        vbox.addRow(QLabel("Molar Weight:"), weight)
+        vbox.addRow(QLabel("Amount:"), amount)
+        reagentGroup.setLayout(vbox)
+
+        group_info = {label: (formula, weight, amount)}
+
+        if type.lower() == 'reagent':
+            self.reagent_list.append(group_info)
         else:
-            reagent_weight = self.molar_var.get()
+            self.product_list.append(group_info)
 
-        if len(prd_formula) > 2:
-            prd_pt_formula = pt.formula(prd_formula)
-            product_weight = prd_pt_formula.mass
-        else:
-            product_weight = self.prd_molar_var.get()
+        return(reagentGroup)
 
-        reagent_mass = self.reagent_mass_var.get()
-        product_mass = self.prd_mass_var.get()
 
-        rgt_moles = reagent_mass/reagent_weight
-        prd_moles = product_mass/product_weight
+def main_app():
+    app = QApplication(sys.argv)
+    ex = main_widget()
+    sys.exit(app.exec_())
 
-        pct_yield = prd_moles/rgt_moles * 100
-        yd = '{:6.2f}%'.format(pct_yield)
-        self.pct_yield_var.set(yd)
+if __name__ == '__main__':
+    main_app()
 
-root = Tk()
-
-app = App(root)
-
-root.mainloop()
-root.destroy()
