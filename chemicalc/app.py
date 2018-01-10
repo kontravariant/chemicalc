@@ -19,7 +19,7 @@ class main_widget(QWidget):
         self.setWindowTitle('ChemiCalc')
         # containers for reactant counting and reactant data
         self.reagent_count, self.product_count = 0, 0
-        self.reagent_list, self.product_list = {}, {}
+        self.reagent_list, self.product_list = [], []
         # button to add a reagent
         reagentAdder = QPushButton("Add Reagent")
         reagentAdder.clicked.connect(self.addReagent)
